@@ -1,0 +1,81 @@
+#include <iostream>
+#include <vector>
+#include <unordered_map>
+#include <set>
+#include <limits>
+#include <algorithm>
+
+using namespace std;
+const int INF = numeric_limits<int>::max();
+
+void dijkstra(const unordered_map<char, vector<pair<char, int>>>& graph, char start, char end) {
+    unordered_map<char, int> distances;
+    unordered_map<char, char> previous;
+    set<pair<int, char>> toVisit;
+
+    for (const auto& node : graph) {
+        if (node.first == start) {
+            distances[node.first] = 0;
+            toVisit.insert({0, node.first});
+        } else {
+            distances[node.first] = INF;
+            toVisit.insert({INF, node.first});
+        }
+        previous[node.first] = '\0';
+    }
+
+    while (!toVisit.empty()) {
+        char current = toVisit.begin()->second;
+        toVisit.erase(toVisit.begin());
+
+        if (current == end) break;
+
+        for (const auto& neighbor : graph.at(current)) {
+            char neighborNode = neighbor.first;
+            int weight = neighbor.second;
+            int newDist = distances[current] + weight;
+
+            if (newDist < distances[neighborNode]) {
+                toVisit.erase({distances[neighborNode], neighborNode});
+                distances[neighborNode] = newDist;
+                toVisit.insert({newDist, neighborNode});
+                previous[neighborNode] = current;
+            }
+        }
+    }
+
+    if (distances[end] == INF) {
+        cout << "No path from " << start << " to " << end << endl;
+    } else {
+        cout << "Shortest path cost from " << start << " to " << end << " is " << distances[end] << endl;
+        vector<char> path;
+        for (char at = end; at != '\0'; at = previous[at]) {
+            path.push_back(at);
+        }
+        reverse(path.begin(), path.end());
+        cout << "Path: ";
+        for (char node : path) {
+            cout << node << " ";
+        }
+        cout << endl;
+    }
+}
+
+int main() {
+    unordered_map<char, vector<pair<char, int>>> graph = {
+        {'A', {{'B', 1}, {'C', 4}}},
+        {'B', {{'A', 1}, {'C', 2}, {'D', 5}}},
+        {'C', {{'A', 4}, {'B', 2}, {'D', 1}}},
+        {'D', {{'B', 5}, {'C', 1}}}
+    };
+
+    char startNode, endNode;
+    cout << "Enter the start node: ";
+    cin >> startNode;
+    cout << "Enter the end node: ";
+    cin >> endNode;
+
+    dijkstra(graph, startNode, endNode);
+
+    return 0;
+}
