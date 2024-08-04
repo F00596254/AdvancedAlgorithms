@@ -1,0 +1,85 @@
+#include <iostream>
+#include <queue>
+#include <unordered_map>
+#include <vector>
+using namespace std;
+
+struct Node {
+    char ch;
+    int freq;
+    Node *left, *right;
+
+    Node(char character, int frequency) {
+        ch = character;
+        freq = frequency;
+        left = right = nullptr;
+    }
+};
+
+struct compare {
+    bool operator()(Node* l, Node* r) {
+        return l->freq > r->freq;
+    }
+};
+
+void generateHuffmanCodes(Node* root, string code, unordered_map<char, string> &huffmanCodes) {
+    if (!root) return;
+
+    if (!root->left && !root->right) {
+        huffmanCodes[root->ch] = code;
+    }
+
+    generateHuffmanCodes(root->left, code + "0", huffmanCodes);
+    generateHuffmanCodes(root->right, code + "1", huffmanCodes);
+}
+
+Node* buildHuffmanTree(const string &S, const vector<int> &freq) {
+    priority_queue<Node*, vector<Node*>, compare> minHeap;
+
+    for (int i = 0; i < S.size(); ++i) {
+        minHeap.push(new Node(S[i], freq[i]));
+    }
+
+    while (minHeap.size() != 1) {
+        Node *left = minHeap.top(); minHeap.pop();
+        Node *right = minHeap.top(); minHeap.pop();
+
+        int sum = left->freq + right->freq;
+        Node *top = new Node('\0', sum);
+        top->left = left;
+        top->right = right;
+
+        minHeap.push(top);
+    }
+
+    return minHeap.top();
+}
+
+void printHuffmanCodes(Node* root, string str) {
+    if (!root)
+        return;
+
+    if (!root->left && !root->right) {
+        cout << root->ch << ": " << str << "\n";
+    }
+
+    printHuffmanCodes(root->left, str + "0");
+    printHuffmanCodes(root->right, str + "1");
+}
+
+int main() {
+    string S = "abcdef";
+    vector<int> freq = {5, 9, 12, 13, 16, 45};
+
+    Node* root = buildHuffmanTree(S, freq);
+
+    unordered_map<char, string> huffmanCodes;
+    generateHuffmanCodes(root, "", huffmanCodes);
+
+    cout << "Huffman Codes:\n";
+    for (const auto &pair : huffmanCodes) {
+        cout << pair.first << " : " << pair.second << "\n";
+    }
+
+    return 0;
+}
